@@ -16,7 +16,7 @@ env;
 [ServiceChannels, ControlChannels] = buildChannels();
 [SatelliteNode, Beams, UTs, targetBeamIndex] = buildNetwork(); %#ok<ASGLU>
 
-APJNode = APJFactory.createAPJ(UTs, Beams, targetUTId, targetJammerDistance);
+APJNode = APJ_BCFactory.createAPJ_BC(UTs, Beams, targetUTId, targetJammerDistance);
 
 timeSlot = TimeSlot();
 bcLog = struct('slot', {}, 'observedChannel', {}, 'top1Channel', {}, 'jammingChannels', {}, 'isAttackPhase', {});
@@ -36,7 +36,7 @@ env;
 [ServiceChannels, ControlChannels] = buildChannels();
 [SatelliteNode, Beams, UTs, targetBeamIndex] = buildNetwork();
 
-apjd = APJDFactory.createAPJD(UTs, Beams, targetUTId, targetJammerDistance);
+apjd = APJFactory.createAPJ(UTs, Beams, targetUTId, targetJammerDistance);
 
 timeSlotDE = TimeSlotDE(2);
 divergenceLog = struct('slot', {}, 'lossA', {}, 'lossB', {}, 'qCosSim', {}, 'argmaxMatch', {}, ...

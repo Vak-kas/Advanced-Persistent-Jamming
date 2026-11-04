@@ -3,5 +3,6 @@ classdef NodeType
         UT
         Satellite
         APJ
+        IJ
     end
 end

@@ -32,8 +32,8 @@ if isempty(targetBeamIndex)
 end
 targetBeam = Beams(targetBeamIndex);
 
-%% ==================== APJD 생성 ====================
-apjd = APJDFactory.createAPJD(UTs, Beams, targetUTId, targetJammerDistance);
+%% ==================== APJ 생성 ====================
+apjd = APJFactory.createAPJ(UTs, Beams, targetUTId, targetJammerDistance);
 targetUT = UTs(targetUTId);
 
 fprintf("\n============================================================\n");
@@ -42,8 +42,8 @@ fprintf("============================================================\n");
 fprintf("Target UT         : UT%d\n", targetUT.Id);
 fprintf("Target Beam       : Beam%d\n", targetBeamIndex);
 fprintf("Target UT 위치    : (%.3f, %.3f) km\n", targetUT.Position(1) / 1e3, targetUT.Position(2) / 1e3);
-fprintf("APJD 위치         : (%.3f, %.3f) km\n", apjd.Position(1) / 1e3, apjd.Position(2) / 1e3);
-fprintf("Target-APJD 거리  : %.3f km\n", targetUT.distanceTo(apjd) / 1e3);
+fprintf("APJ 위치         : (%.3f, %.3f) km\n", apjd.Position(1) / 1e3, apjd.Position(2) / 1e3);
+fprintf("Target-APJ 거리  : %.3f km\n", targetUT.distanceTo(apjd) / 1e3);
 fprintf("Num Beams         : %d\n", numel(Beams));
 fprintf("Num Channels      : %d\n", numChannels);
 fprintf("Num Time Slots    : %d\n", numTimeSlots);
@@ -94,7 +94,7 @@ windowSize = summaryWindow;
 figure;
 subplot(2,2,1);
 plot(slots, lossA, slots, lossB);
-legend("Target Beam Agent Loss", "APJD Shadow Agent Loss", "Location", "best");
+legend("Target Beam Agent Loss", "APJ Shadow Agent Loss", "Location", "best");
 title("Target / Shadow Loss 비교"); xlabel("Time Slot"); ylabel("Loss");
 
 subplot(2,2,2);
@@ -110,7 +110,7 @@ plot(slots, weightDiffNorm);
 title("Weight Difference L2 Norm"); xlabel("Time Slot"); ylabel("Norm");
 
 fprintf("\n============================================================\n");
-fprintf(" Target Beam vs APJD Shadow DQN Summary\n");
+fprintf(" Target Beam vs APJ Shadow DQN Summary\n");
 fprintf("============================================================\n");
 fprintf("최근 %d슬롯 평균 Argmax Agreement : %.2f%%\n", summaryWindow, mean(argmaxMatch(validIdx), "omitnan") * 100);
 fprintf("최근 %d슬롯 평균 Q Cosine Similarity : %.6f\n", summaryWindow, mean(qCosSim(validIdx), "omitnan"));
@@ -143,7 +143,7 @@ recentRank2RescueRate = recentRank2RescueCount / summaryWindow;
 recentTop2Rate = recentTop2HitCount / summaryWindow;
 
 fprintf("\n============================================================\n");
-fprintf(" Target Beam vs APJD Shadow Top-K Policy Summary\n");
+fprintf(" Target Beam vs APJ Shadow Top-K Policy Summary\n");
 fprintf("============================================================\n");
 fprintf("최근 %d슬롯 Top-1 Agreement       : %.2f%%\n", summaryWindow, recentTop1Rate * 100);
 fprintf("최근 %d슬롯 Rank-2 Rescue         : %.2f%%\n", summaryWindow, recentRank2RescueRate * 100);
@@ -172,7 +172,7 @@ recentActualRank2RescueRate = recentActualRank2RescueCount / summaryWindow;
 recentActualTop2Rate = recentActualTop2HitCount / summaryWindow;
 
 fprintf("\n============================================================\n");
-fprintf(" APJD Actual Channel Prediction Top-K Summary\n");
+fprintf(" APJ Actual Channel Prediction Top-K Summary\n");
 fprintf("============================================================\n");
 fprintf("최근 %d슬롯 Actual Top-1 Hit              : %.2f%%\n", summaryWindow, recentActualTop1Rate * 100);
 fprintf("최근 %d슬롯 Actual Rank-2 Rescue          : %.2f%%\n", summaryWindow, recentActualRank2RescueRate * 100);
@@ -307,7 +307,7 @@ yline(randomBaseline_Top2, ':k', sprintf('Random Top-2 (%.0f%%)', randomBaseline
 xline(attackStartSlot, '--r', 'Attack Start');
 hold off;
 legend("Top-1 Accuracy (rolling)", "Top-2 Accuracy (rolling)", "Location", "best");
-title(sprintf("APJD Shadow DQN Actual Channel Prediction Accuracy (window=%d)", trendWindow));
+title(sprintf("APJ Shadow DQN Actual Channel Prediction Accuracy (window=%d)", trendWindow));
 xlabel("Time Slot"); ylabel("Accuracy (%)"); ylim([0 100]);
 
 attackIdx = slots > attackStartSlot;

@@ -62,6 +62,11 @@ classdef UT < Node
 
         %% ========== HRAQ 수행 ==========
         function [packetType, SINR_dB] = performHARQ(obj, ServiceChannels, ControlChannels, Satellite, APJ)
+            % [신규] 매 슬롯 RF 관측. DATA/JAMMING 패킷이 모두 주입된 뒤 호출되므로
+            % 이 시점의 채널 상태(간섭 + 재밍 + 잡음)가 관측에 반영된다.
+            % 관측 결과는 아래 HARQ 패킷 payload로 위성에 보고된다.
+            obj.ObservationManager.observe(ServiceChannels, Satellite);
+
             desiredPacket = obj.findDesiredPacket(ServiceChannels);
             
             % 오류 대비용
@@ -173,7 +178,7 @@ classdef UT < Node
                 jammingPacket = jammingPackets(jammingIndex);
         
                 % APJ가 만든 JAMMING packet만 처리
-                if jammingPacket.SourceType ~= NodeType.APJ
+                if jammingPacket.SourceType ~= NodeType.APJ && jammingPacket.SourceType ~= NodeType.IJ
                     continue;
                 end
         
@@ -192,16 +197,6 @@ classdef UT < Node
                 jammingPowerEach_W(jammingIndex) = jammerReceivedPower_W;
                 jammingPower_W = jammingPower_W + jammerReceivedPower_W;
 
-                % ========== [진단용 — 원인 찾으면 삭제] ==========
-                if obj.IsTarget
-                    fprintf(['[JAM DEBUG] dist=%.6g  pathGain=%.6g  ' ...
-                        'TxPower_dBm=%.6g  TxGain_dBi=%.6g  rxGain_lin=%.6g  ' ...
-                        '-> jammerRecvPower_W=%.6g\n'], ...
-                        jammingDistance, jammingPathGain, jammerTxPower_dBm, ...
-                        jammerTxGain_dBi, rxGain_linear, jammerReceivedPower_W);
-                end
-                % =================================================
-        
             end
 
 
@@ -212,35 +207,8 @@ classdef UT < Node
 
 
             % 최종 SINR 계산
-            SINR_linear = desiredPower_W / (interferencePower_W + jammingPower_W +noisePower_W);
+            SINR_linear = desiredPower_W / (interferencePower_W + jammingPower_W + noisePower_W);
             SINR_dB = 10 * log10(SINR_linear);
-
-            % 최종 SINR 계산
-            SINR_linear = desiredPower_W / (interferencePower_W + jammingPower_W +noisePower_W);
-            SINR_dB = 10 * log10(SINR_linear);
-            
-            % <<< 여기, 이 자리에 새 블록을 추가 >>>
-            if obj.IsTarget && (~isfinite(SINR_dB) || ~isreal(SINR_dB))
-                persistent sinrDumpCount
-                if isempty(sinrDumpCount)
-                    sinrDumpCount = 0;
-                end
-                if sinrDumpCount < 5
-                    sinrDumpCount = sinrDumpCount + 1;
-                    fprintf('\n================ [SINR NON-FINITE DEBUG #%d] ================\n', sinrDumpCount);
-                    fprintf('Channel                : %d\n', desiredPacket.ChannelId);
-                    fprintf('desiredTxPower_dBm     : %.6g\n', desiredTxPower_dBm);
-                    fprintf('desiredTxGain_dBi      : %.6g\n', desiredTxGain_dBi);
-                    fprintf('desiredPower_W         : %.6g\n', desiredPower_W);
-                    fprintf('interferencePower_W    : %.6g (interferers=%d)\n', interferencePower_W, numel(interferencePackets));
-                    fprintf('jammingPower_W         : %.6g (jammers=%d)\n', jammingPower_W, numel(jammingPackets));
-                    fprintf('noisePower_W           : %.6g\n', noisePower_W);
-                    fprintf('SINR_linear            : %s\n', mat2str(SINR_linear));
-                    fprintf('SINR_dB                : %s\n', mat2str(SINR_dB));
-                    fprintf('===============================================================\n\n');
-                end
-            end
-            % <<< 여기까지 새 블록 >>>
 
 
 

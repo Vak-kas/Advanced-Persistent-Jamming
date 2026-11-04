@@ -32,7 +32,7 @@ if isempty(targetBeamIndex)
     error("final4:TargetBeamNotFound", "targetUTId %d 에 연결된 Beam을 찾을 수 없습니다.", targetUTId);
 end
 
-apjd = APJDFactory.createAPJD(UTs, Beams, targetUTId, targetJammerDistance);
+apjd = APJFactory.createAPJ(UTs, Beams, targetUTId, targetJammerDistance);
 targetUT = UTs(targetUTId);
 
 fprintf("\n============================================================\n");

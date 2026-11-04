@@ -15,6 +15,7 @@ classdef TimeSlotR
     %   isAttackPhase)를 rLog로 반환한다(TimeSlotS.m/TimeSlotC.m과 동일 형식).
 
     properties
+        Verbose = false   % true: per-slot console output (debugging only)
         ReconnaissanceDuration
         TopKJam   % 매 슬롯 동시에 재밍할 채널 개수 (기본 2)
     end
@@ -35,7 +36,7 @@ classdef TimeSlotR
         function rLog = run(obj, slotIndex, UTs, Satellite, apj, ServiceChannels, ControlChannels, targetBeamIndex, rLog)
 
             %% 1. Time Slot Header
-            DebugHelper.printTimeSlot(slotIndex);
+            if obj.Verbose, DebugHelper.printTimeSlot(slotIndex); end
 
             %% 2. Channel 초기화
             obj.clearChannels(ServiceChannels, ControlChannels);
@@ -56,7 +57,7 @@ classdef TimeSlotR
                 beam.Agent.completeTransition();
 
                 [lossValue, trainingInfo] = beam.Agent.train();
-                if beamIndex == targetBeamIndex
+                if obj.Verbose && beamIndex == targetBeamIndex
                     DebugHelper.printAgentTraining(beam, lossValue, trainingInfo);
                 end
 
@@ -67,8 +68,10 @@ classdef TimeSlotR
 
                 if beamIndex == targetBeamIndex
                     targetSelectedChannel = selectedChannel;
-                    DebugHelper.printTargetActionSelection( ...
-                        slotIndex, beam, selectedChannel, selectionMethod, randomValue, qValues);
+                    if obj.Verbose
+                        DebugHelper.printTargetActionSelection( ...
+                            slotIndex, beam, selectedChannel, selectionMethod, randomValue, qValues);
+                    end
                 end
             end
 
@@ -84,17 +87,19 @@ classdef TimeSlotR
                 jammingChannels = permChannels(1:k);
             end
 
-            fprintf("\n============================================================\n");
-            fprintf("RANDOM JAMMER STATUS - SLOT %d\n", slotIndex);
-            fprintf("============================================================\n");
-            if isAttackPhase
-                fprintf("  Phase              : ATTACK\n");
-                fprintf("  Jamming Channels   : %s (무작위)\n", mat2str(jammingChannels));
-            else
-                fprintf("  Phase              : RECONNAISSANCE\n");
-                fprintf("  Jamming            : NONE\n");
+            if obj.Verbose
+                fprintf("\n============================================================\n");
+                fprintf("RANDOM JAMMER STATUS - SLOT %d\n", slotIndex);
+                fprintf("============================================================\n");
+                if isAttackPhase
+                    fprintf("  Phase              : ATTACK\n");
+                    fprintf("  Jamming Channels   : %s (무작위)\n", mat2str(jammingChannels));
+                else
+                    fprintf("  Phase              : RECONNAISSANCE\n");
+                    fprintf("  Jamming            : NONE\n");
+                end
+                fprintf("============================================================\n");
             end
-            fprintf("============================================================\n");
 
             %% 5. Satellite -> UT Downlink DATA 전송
             dataPackets = cell(1, numel(Satellite.Beams));

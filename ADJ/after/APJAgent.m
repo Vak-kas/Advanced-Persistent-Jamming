@@ -1,7 +1,7 @@
-classdef APJDAgent < Agent
+classdef APJAgent < Agent
 
     methods
-        function obj = APJDAgent(owner)
+        function obj = APJAgent(owner)
             env;
 
             obj@Agent(owner, numChannels);

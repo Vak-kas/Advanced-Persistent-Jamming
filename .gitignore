@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# MATLAB
+*.asv
+*.autosave
+*.mlx.bak
+slprj/
+
+# simulation results (kept locally, not versioned)
+results/
+figures/

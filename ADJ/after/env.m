@@ -22,7 +22,7 @@ channelBandwidth_Hz = 360e3;
 numSatellites = 1; % Number of satellites
 numUTs = 19; % Number of UTs
 numAPJ = 1;% Number of APJs
-targetUTId = 1;% Target UT ID
+targetUTId = 1;% Target UT ID (= first beam in the fixed decision order, paper Sec. 2.2)
 
 %% ==================== Satellite Parameters ====================
 satelliteAltitude = 600e3; % 위성 고도 600km
@@ -125,6 +125,28 @@ apjSuccessReward = 5;
 apjFailureReward = -1;
 apjRewardFunction = @(targetACK) double(targetACK) * apjSuccessReward + double(~targetACK) * apjFailureReward;
 
+%% ==================== Intelligent Jammer (DQN-IJ, Jing et al.) Parameters ====================
+ijTxPower_dBm    = apjTxPower_dBm;
+ijTxGain_dBi     = apjTxGain_dBi;
+ijRxGain_dBi     = apjRxGain_dBi;
+ijNoiseFigure_dB = apjNoiseFigure_dB;
+
+ijJammingBudget = 2;   % 논문 Eq.(23)의 ϖ에 해당 — 연속 제약 없이 자유 2채널 조합
+
+ijBatchSize            = 256;
+ijLearnRate            = 0.001;
+ijDiscountFactor       = 0.9;
+ijReplayBufferCapacity = 5000;
+
+ijEpsilon             = 1.000;
+ijEpsilonMin          = 0.05;
+ijEpsilonDecay        = 0.999;
+ijTargetUpdateFrequency = 200;
+
+ijSuccessReward = 5;
+ijFailureReward = -1;
+ijRewardFunction = @(attackSucceeded) double(attackSucceeded) * ijSuccessReward + double(~attackSucceeded) * ijFailureReward;
+
 
 
 %% ==================== 변수 설정 ====================
@@ -133,6 +155,6 @@ utTxPower_W = 10^((utTxPower_dBm - 30) / 10); % Convert transmit power from dBm 
 apjTxPower_W = 10^((apjTxPower_dBm - 30) / 10); % Convert APJ transmit power from dBm to Watts
 
 % ===== Satellite coverage geometry =====
-rng(simulationSeed);
+% rng(simulationSeed);
 
 % fprintf("apjLearnRate = %.6f\n", apjLearnRate);

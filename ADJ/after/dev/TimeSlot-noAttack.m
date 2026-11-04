@@ -8,8 +8,8 @@ classdef TimeSlotD
     %   - epsilon-greedy 실제 action
     %   - 실제 HARQ reward
     %
-    % APJD Shadow:
-    %   - APJD 위치 RF observation
+    % APJ Shadow:
+    %   - APJ 위치 RF observation
     %   - Occupancy: Oracle
     %   - Action: Target actual action Oracle
     %   - HARQ/Reward: Target actual result Oracle
@@ -146,17 +146,17 @@ classdef TimeSlotD
             fprintf("============================================================\n");
             fprintf("  UT1 RF Observation       : %s\n", ...
                 mat2str(double(targetUTRFObservation(:))', 6));
-            fprintf("  APJD RF Observation      : %s\n", ...
+            fprintf("  APJ RF Observation      : %s\n", ...
                 mat2str(double(apjdRFObservation(:))', 6));
             fprintf("============================================================\n");
 
             DebugHelper.printRFObservationComparison( ...
                 slotIndex, targetUT, apjd, targetUTRFObservation, apjdRFObservation);
 
-            %% 6. APJD Shadow Agent
+            %% 6. APJ Shadow Agent
             shadowAgent = apjd.Agent;
 
-            % 이전 슬롯 마지막 update()까지 반영된 APJD state
+            % 이전 슬롯 마지막 update()까지 반영된 APJ state
             shadowState = apjd.StateManager.getState();
 
             % Occupancy는 이번 단계에서 Oracle
@@ -289,16 +289,16 @@ classdef TimeSlotD
                 slotIndex, targetAction, targetPacketType, targetOutcome, ...
                 targetAgent, shadowAgent);
 
-            %% 10. APJD StateManager Update
+            %% 10. APJ StateManager Update
             %
-            % O = APJD RF observation
+            % O = APJ RF observation
             % A = Target action Oracle
             % H = Target HARQ Oracle
             %
             % 이 값은 다음 슬롯의 shadowState가 된다.
             if isempty(apjdRFObservation)
                 warning("TimeSlotD:EmptyAPJDRFObservation", ...
-                    "Slot %d에서 APJD RF observation이 비어 있습니다.", slotIndex);
+                    "Slot %d에서 APJ RF observation이 비어 있습니다.", slotIndex);
             else
                 apjd.StateManager.update( ...
                     apjdRFObservation, targetAction, targetPacketType);

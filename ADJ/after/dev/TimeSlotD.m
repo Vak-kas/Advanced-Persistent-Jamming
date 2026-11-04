@@ -131,7 +131,7 @@ classdef TimeSlotD
             end
 
 
-            %% 4. APJD Attack Decision (Top-K Jamming)
+            %% 4. APJ Attack Decision (Top-K Jamming)
             previousPredictedChannel = apjd.PredictedChannel;
             previousPredictedQValues = apjd.PredictedQValues;
 
@@ -172,7 +172,7 @@ classdef TimeSlotD
 
             % fprintf("\n");
             % fprintf("============================================================\n");
-            % fprintf("APJD ATTACK STATUS - SLOT %d\n", slotIndex);
+            % fprintf("APJ ATTACK STATUS - SLOT %d\n", slotIndex);
             % fprintf("============================================================\n");
             %
             % if isAttackPhase
@@ -225,7 +225,7 @@ classdef TimeSlotD
             end
 
 
-            %% 5.5. APJD 실제 재밍 패킷 주입 (Top-K 채널 전부)
+            %% 5.5. APJ 실제 재밍 패킷 주입 (Top-K 채널 전부)
             if isAttackPhase && ~isempty(jammingChannels)
 
                 targetBeamId = Satellite.Beams(targetBeamIndex).Id;
@@ -247,7 +247,7 @@ classdef TimeSlotD
             end
 
 
-            %% 6. Target UT / APJD RF Observation
+            %% 6. Target UT / APJ RF Observation
             targetUT = UTs(apjd.TargetUTId);
 
             targetUTRFObservation = ...
@@ -266,13 +266,13 @@ classdef TimeSlotD
             % fprintf("  UT1 RF Observation       : %s\n", ...
             %     mat2str(double(targetUTRFObservation(:))', 6));
             %
-            % fprintf("  APJD RF Observation      : %s\n", ...
+            % fprintf("  APJ RF Observation      : %s\n", ...
             %     mat2str(double(apjdRFObservation(:))', 6));
             %
             % if isAttackPhase && ~isempty(jammingChannels)
-            %     fprintf("  APJD Jamming Channel(s)  : %s\n", mat2str(jammingChannels));
+            %     fprintf("  APJ Jamming Channel(s)  : %s\n", mat2str(jammingChannels));
             % else
-            %     fprintf("  APJD Jamming Channel(s)  : NONE\n");
+            %     fprintf("  APJ Jamming Channel(s)  : NONE\n");
             % end
             %
             % fprintf("============================================================\n");
@@ -285,7 +285,7 @@ classdef TimeSlotD
             %     apjdRFObservation);
 
 
-            %% 7. APJD Shadow Agent
+            %% 7. APJ Shadow Agent
             shadowAgent = apjd.Agent;
 
             shadowState = apjd.StateManager.getState();
@@ -509,12 +509,12 @@ classdef TimeSlotD
                 slotIndex, targetPacketType, targetSINR_dB, obj.ReconnaissanceDuration);
 
 
-            %% 11. APJD StateManager Update
+            %% 11. APJ StateManager Update
             if isempty(apjdRFObservation)
 
                 warning( ...
                     "TimeSlotD:EmptyAPJDRFObservation", ...
-                    "Slot %d에서 APJD RF observation이 비어 있습니다.", ...
+                    "Slot %d에서 APJ RF observation이 비어 있습니다.", ...
                     slotIndex);
 
             else
@@ -555,7 +555,7 @@ classdef TimeSlotD
 
             % fprintf("\n");
             % fprintf("============================================================\n");
-            % fprintf("APJD NEXT-SLOT PREDICTION - SLOT %d\n", slotIndex);
+            % fprintf("APJ NEXT-SLOT PREDICTION - SLOT %d\n", slotIndex);
             % fprintf("============================================================\n");
             %
             % fprintf("  Current Phase           : %s\n", ...

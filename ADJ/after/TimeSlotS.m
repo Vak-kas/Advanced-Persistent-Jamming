@@ -19,6 +19,7 @@ classdef TimeSlotS
     % sweepLog에 기록해서 반환한다.
 
     properties
+        Verbose = false   % true: per-slot console output (debugging only)
         ReconnaissanceDuration
         DwellSlots
         ChannelPairs   % N x 2, 각 행이 동시에 재밍할 채널 쌍
@@ -31,7 +32,7 @@ classdef TimeSlotS
             obj.ReconnaissanceDuration = reconnaissanceDuration;
 
             if nargin < 2 || isempty(dwellSlots)
-                dwellSlots = 100;   % 채널 쌍 하나당 재밍 유지 슬롯 수 (기본값)
+                dwellSlots = 1;     % 채널 쌍 하나당 재밍 유지 슬롯 수 (기본값, 논문 설정)
             end
             obj.DwellSlots = dwellSlots;
 
@@ -54,7 +55,7 @@ classdef TimeSlotS
         function sweepLog = run(obj, slotIndex, UTs, Satellite, apj, ServiceChannels, ControlChannels, targetBeamIndex, sweepLog)
 
             %% 1. Time Slot Header
-            DebugHelper.printTimeSlot(slotIndex);
+            if obj.Verbose, DebugHelper.printTimeSlot(slotIndex); end
 
             %% 2. Channel 초기화
             obj.clearChannels(ServiceChannels, ControlChannels);
@@ -75,7 +76,7 @@ classdef TimeSlotS
                 beam.Agent.completeTransition();
 
                 [lossValue, trainingInfo] = beam.Agent.train();
-                if beamIndex == targetBeamIndex
+                if obj.Verbose && beamIndex == targetBeamIndex
                     DebugHelper.printAgentTraining(beam, lossValue, trainingInfo);
                 end
 
@@ -86,8 +87,10 @@ classdef TimeSlotS
 
                 if beamIndex == targetBeamIndex
                     targetSelectedChannel = selectedChannel;
-                    DebugHelper.printTargetActionSelection( ...
-                        slotIndex, beam, selectedChannel, selectionMethod, randomValue, qValues);
+                    if obj.Verbose
+                        DebugHelper.printTargetActionSelection( ...
+                            slotIndex, beam, selectedChannel, selectionMethod, randomValue, qValues);
+                    end
                 end
             end
 
@@ -102,17 +105,19 @@ classdef TimeSlotS
                 jammingChannels = unique(obj.ChannelPairs(pairIndex, :));
             end
 
-            fprintf("\n============================================================\n");
-            fprintf("SWEEP JAMMER STATUS - SLOT %d\n", slotIndex);
-            fprintf("============================================================\n");
-            if isAttackPhase
-                fprintf("  Phase              : ATTACK\n");
-                fprintf("  Jamming Channels   : %s\n", mat2str(jammingChannels));
-            else
-                fprintf("  Phase              : RECONNAISSANCE\n");
-                fprintf("  Jamming            : NONE\n");
+            if obj.Verbose
+                fprintf("\n============================================================\n");
+                fprintf("SWEEP JAMMER STATUS - SLOT %d\n", slotIndex);
+                fprintf("============================================================\n");
+                if isAttackPhase
+                    fprintf("  Phase              : ATTACK\n");
+                    fprintf("  Jamming Channels   : %s\n", mat2str(jammingChannels));
+                else
+                    fprintf("  Phase              : RECONNAISSANCE\n");
+                    fprintf("  Jamming            : NONE\n");
+                end
+                fprintf("============================================================\n");
             end
-            fprintf("============================================================\n");
 
             %% 5. Satellite -> UT Downlink DATA 전송
             dataPackets = cell(1, numel(Satellite.Beams));

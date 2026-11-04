@@ -38,7 +38,7 @@ if isempty(targetBeamIndex)
 end
 
 %% ==================== APJ 생성 ====================
-APJNode = APJFactory.createAPJ(UTs, Beams, targetUTId, targetJammerDistance);
+APJNode = APJ_BCFactory.createAPJ_BC(UTs, Beams, targetUTId, targetJammerDistance);
 targetUT = UTs(targetUTId);
 
 fprintf("\n============================================================\n");

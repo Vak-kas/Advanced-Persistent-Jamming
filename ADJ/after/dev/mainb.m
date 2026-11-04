@@ -32,11 +32,11 @@ if isempty(targetBeamIndex)
 end
 targetBeam = Beams(targetBeamIndex);
 
-%% ==================== APJD 생성 (독립 학습 GA-Dueling DQN) ====================
-apjd = APJDFactory.createAPJD(UTs, Beams, targetUTId, targetJammerDistance);
+%% ==================== APJ 생성 (독립 학습 GA-Dueling DQN) ====================
+apjd = APJFactory.createAPJ(UTs, Beams, targetUTId, targetJammerDistance);
 
 % ---- Agent를 "독립 학습"(epsilon-greedy 자기 행동 선택) 버전으로 교체 ----
-apjd.Agent = APJDAgentDueling(apjd);
+apjd.Agent = APJAgentDueling(apjd);
 
 targetUT = UTs(targetUTId);
 
@@ -46,7 +46,7 @@ fprintf(" Action=자기 선택(epsilon-greedy) / Reward=자기 공격 성공 여
 fprintf("============================================================\n");
 fprintf("Target UT         : UT%d\n", targetUT.Id);
 fprintf("Target Beam       : Beam%d\n", targetBeamIndex);
-fprintf("Target-APJD 거리  : %.3f km\n", targetUT.distanceTo(apjd) / 1e3);
+fprintf("Target-APJ 거리  : %.3f km\n", targetUT.distanceTo(apjd) / 1e3);
 fprintf("Num Channels      : %d\n", numChannels);
 fprintf("Num Time Slots    : %d\n", numTimeSlots);
 fprintf("Reconnaissance Duration : %d (이 구간엔 재머가 행동하지 않음)\n", reconnaissanceDuration);

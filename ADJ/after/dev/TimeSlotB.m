@@ -173,7 +173,7 @@ classdef TimeSlotB
             end
 
 
-            %% 6. Target UT / APJD RF Observation
+            %% 6. Target UT / APJ RF Observation
             targetUT = UTs(apjd.TargetUTId);
             targetUT.ObservationManager.observe(ServiceChannels, Satellite);
             apjdRFObservation = apjd.ObservationManager.observe(ServiceChannels, Satellite);

@@ -10,8 +10,8 @@ classdef TimeSlotD
     %   - epsilon-greedy로 실제 환경 action 선택
     %   - 실제 reward로 DQN 학습
     %
-    % APJD:
-    %   - APJDAgent
+    % APJ:
+    %   - APJAgent
     %   - 자기 action으로 환경에 개입하지 않음
     %   - Target의 실제 transition을 Full Oracle로 전달받음
     %
@@ -402,7 +402,7 @@ classdef TimeSlotD
 
 
             %% ========================================================
-            % 4. APJD Full-Oracle Shadow DQN
+            % 4. APJ Full-Oracle Shadow DQN
             % =========================================================
             shadowAgent = ...
                 apjd.Agent;
@@ -913,7 +913,7 @@ classdef TimeSlotD
 
 
             %% ========================================================
-            % 8. APJD StateManager Update
+            % 8. APJ StateManager Update
             % =========================================================
             targetUTFeedbackObservation = [];
 
@@ -1025,7 +1025,7 @@ classdef TimeSlotD
 
             fprintf("\n");
             fprintf("============================================================\n");
-            fprintf("APJD SHADOW AGENT TRAINING - SLOT %d\n", slotIndex);
+            fprintf("APJ SHADOW AGENT TRAINING - SLOT %d\n", slotIndex);
             fprintf("============================================================\n");
 
 

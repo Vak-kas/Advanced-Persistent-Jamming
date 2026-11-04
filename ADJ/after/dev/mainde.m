@@ -32,30 +32,45 @@ if isempty(targetBeamIndex)
 end
 targetBeam = Beams(targetBeamIndex);
 
-%% ==================== APJD 생성 ====================
-apjd = APJDFactory.createAPJD(UTs, Beams, targetUTId, targetJammerDistance);
+%% ==================== APJ 생성 ====================
+apjd = APJFactory.createAPJ(UTs, Beams, targetUTId, targetJammerDistance);
 targetUT = UTs(targetUTId);
+
+%% ==================== [신규] 재머 등록 (관측에 재밍 포함) ====================
+% ObservationManager가 JAMMING 패킷의 수신 전력을 계산하려면 재머 노드
+% (위치/송신전력/이득)를 알아야 한다. 등록하지 않으면 기존처럼 재밍이
+% 관측에서 제외된다.
+%   - 모든 UT      : 재머 -> UT 거리 기준 실제 수신 전력
+%   - APJ 자기 자신: APJ -> Target UT 거리 기준 (Target UT가 받을 전력 추정)
+for utIndex = 1:numel(UTs)
+    UTs(utIndex).ObservationManager.Jammer = apjd;
+end
+apjd.ObservationManager.Jammer   = apjd;
+apjd.ObservationManager.TargetUT = targetUT;
+
+assert(~isempty(targetUT.ObservationManager.Jammer), "mainDE:JammerNotRegistered — Jammer 미등록");
+assert(~isempty(apjd.ObservationManager.TargetUT),   "mainDE:TargetUTNotRegistered — APJ TargetUT 미등록");
 
 fprintf("\n============================================================\n");
 fprintf(" RF-Observation + Oracle Action/Occupancy + SINR-Estimated Reward\n");
-fprintf(" (TimeSlotDE)\n");
+fprintf(" (TimeSlotDE) — jamming INCLUDED in RF observation\n");
 fprintf("============================================================\n");
 fprintf("Target UT         : UT%d\n", targetUT.Id);
 fprintf("Target Beam       : Beam%d\n", targetBeamIndex);
 fprintf("Target UT 위치    : (%.3f, %.3f) km\n", targetUT.Position(1) / 1e3, targetUT.Position(2) / 1e3);
-fprintf("APJD 위치         : (%.3f, %.3f) km\n", apjd.Position(1) / 1e3, apjd.Position(2) / 1e3);
-fprintf("Target-APJD 거리  : %.3f km\n", targetUT.distanceTo(apjd) / 1e3);
+fprintf("APJ 위치         : (%.3f, %.3f) km\n", apjd.Position(1) / 1e3, apjd.Position(2) / 1e3);
+fprintf("Target-APJ 거리  : %.3f km\n", targetUT.distanceTo(apjd) / 1e3);
 fprintf("Num Beams         : %d\n", numel(Beams));
 fprintf("Num Channels      : %d\n", numChannels);
 fprintf("Num Time Slots    : %d\n", numTimeSlots);
 fprintf("Batch Size Target : %d\n", targetBeam.Agent.BatchSize);
 fprintf("Batch Size Shadow : %d\n", apjd.Agent.BatchSize);
-fprintf("APJD SINR Threshold : %.2f dB\n", apjd.SINRThreshold_dB);
+fprintf("APJ SINR Threshold : %.2f dB\n", apjd.SINRThreshold_dB);
 fprintf("============================================================\n");
 
 %% ==================== TimeSlotDE 생성 / 로그 초기화 ====================
 % TimeSlotDE(topKJam): 1 = Top-1 채널만 재밍, 2 = Top-1+Top-2 동시 재밍(기본값)
-timeSlotDE = TimeSlotDE(2);
+timeSlotDE = TimeSlotDE(2, reconnaissanceDuration);
 
 divergenceLog = struct('slot', {}, 'lossA', {}, 'lossB', {}, 'qCosSim', {}, 'argmaxMatch', {}, ...
     'weightDiffNorm', {}, 'weightNormA', {}, 'weightNormB', {}, 'qA', {}, 'qB', {}, 'qL2Dist', {}, ...
@@ -64,8 +79,19 @@ divergenceLog = struct('slot', {}, 'lossA', {}, 'lossB', {}, 'qCosSim', {}, 'arg
 channelLog = struct('slot', {}, 'channel', {}, 'epsilon', {}, 'method', {}, 'qValues', {});
 
 %% ==================== Time Slot 루프 ====================
+% 관측에 재밍이 실제로 들어가는지 확인용: 공격 시작 직후 몇 슬롯의
+% Target UT / APJ raw observation(dBm)을 출력. 재밍 채널은 약 -43 dBm,
+% 나머지는 -120 ~ -90 dBm 근처여야 정상.
+observationCheckSlots = reconnaissanceDuration + (1:3);
+
 for slotIndex = 1:numTimeSlots
     [divergenceLog, channelLog] = timeSlotDE.run(slotIndex, UTs, SatelliteNode, apjd, ServiceChannels, ControlChannels, targetBeamIndex, divergenceLog, channelLog);
+
+    if any(slotIndex == observationCheckSlots)
+        fprintf("\n[OBS CHECK] slot %d | jamming ch = %s\n", slotIndex, mat2str(divergenceLog(end).jammingChannels));
+        fprintf("  Target UT obs (dBm): %s\n", mat2str(round(targetUT.ObservationManager.CurrentObservation, 1)));
+        fprintf("  APJ      obs (dBm): %s\n", mat2str(round(apjd.ObservationManager.CurrentObservation, 1)));
+    end
 end
 
 if isempty(divergenceLog)
@@ -114,7 +140,7 @@ yline(randomBaseline_Top2, ':k', sprintf('Random Top-2 (%.0f%%)', randomBaseline
 xline(attackStartSlot, '--r', 'Attack Start');
 hold off;
 legend("Top-1 Accuracy (rolling)", "Top-2 Accuracy (rolling)", "Location", "best");
-title(sprintf("APJD Shadow DQN: Channel Prediction Accuracy over Time (window=%d)", trendWindow));
+title(sprintf("APJ Shadow DQN: Channel Prediction Accuracy over Time (window=%d)", trendWindow));
 xlabel("Time Slot"); ylabel("Accuracy (%)"); ylim([0 100]);
 grid on;
 
@@ -146,7 +172,7 @@ top2HitCount = nnz(top2HitTrend(attackAttackIdx));
 attackTotalCountBC = numel(attackAttackIdx);
 
 fprintf("\n============================================================\n");
-fprintf(" [APJD Shadow DQN] Top-1 vs Top-2 Jamming Hit Rate 요약\n");
+fprintf(" [APJ Shadow DQN] Top-1 vs Top-2 Jamming Hit Rate 요약\n");
 fprintf("============================================================\n");
 if attackTotalCountBC > 0
     fprintf("① Jamming Hit Rate (Top-1) : %.2f%% (%d / %d)\n", ...
@@ -173,7 +199,7 @@ if attackTotalCountBC > 0
     hold off;
 
     xlabel("Time Slot"); ylabel("Jamming Hit Rate (%)");
-    title(sprintf("APJD Shadow DQN: Top-1 vs Top-2 Jamming Hit Rate (window=%d)", trendWindowBC));
+    title(sprintf("APJ Shadow DQN: Top-1 vs Top-2 Jamming Hit Rate (window=%d)", trendWindowBC));
     legend("Top-1", "Top-2", "Location", "best");
     xlim([attackStartSlot numTimeSlots]);
     ylim([0 100]);

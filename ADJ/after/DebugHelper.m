@@ -667,14 +667,14 @@ classdef DebugHelper
         end
 
 
-        %% ========== Target UT vs APJD RF Observation 비교 ==========
+        %% ========== Target UT vs APJ RF Observation 비교 ==========
         function printRFObservationComparison(slotIndex, targetUT, apjd, targetObservation, apjdObservation)
             targetPosition = double(targetUT.Position(:));
             apjdPosition = double(apjd.Position(:));
             distance_m = norm(targetPosition - apjdPosition);
 
             fprintf("\n============================================================\n");
-            fprintf("TARGET UT vs APJD RF OBSERVATION - SLOT %d\n", slotIndex);
+            fprintf("TARGET UT vs APJ RF OBSERVATION - SLOT %d\n", slotIndex);
             fprintf("============================================================\n");
             fprintf("  Target UT ID             : %d\n", apjd.TargetUTId);
 
@@ -687,14 +687,14 @@ classdef DebugHelper
             end
 
             if numel(apjdPosition) >= 3
-                fprintf("  APJD Position            : (%+.3f, %+.3f, %+.3f) km\n", ...
+                fprintf("  APJ Position            : (%+.3f, %+.3f, %+.3f) km\n", ...
                     apjdPosition(1)/1e3, apjdPosition(2)/1e3, apjdPosition(3)/1e3);
             else
-                fprintf("  APJD Position            : (%+.3f, %+.3f) km\n", ...
+                fprintf("  APJ Position            : (%+.3f, %+.3f) km\n", ...
                     apjdPosition(1)/1e3, apjdPosition(2)/1e3);
             end
 
-            fprintf("  APJD - Target UT Dist.   : %.6f km\n", distance_m/1e3);
+            fprintf("  APJ - Target UT Dist.   : %.6f km\n", distance_m/1e3);
 
             if isempty(targetObservation) || isempty(apjdObservation)
                 fprintf("\n  Observation              : EMPTY\n");
@@ -708,7 +708,7 @@ classdef DebugHelper
             if numel(targetObservation) ~= numel(apjdObservation)
                 fprintf("\n  Observation Size Mismatch\n");
                 fprintf("    Target count           : %d\n", numel(targetObservation));
-                fprintf("    APJD count             : %d\n", numel(apjdObservation));
+                fprintf("    APJ count             : %d\n", numel(apjdObservation));
                 fprintf("============================================================\n");
                 return;
             end
@@ -717,7 +717,7 @@ classdef DebugHelper
 
             fprintf("\n  [Channel-wise RF Observation]\n");
             for channelIndex = 1:numel(targetObservation)
-                fprintf("    CH %2d | UT1=%+12.6f dBm | APJD=%+12.6f dBm | SignedDiff=%+9.4f dB | AbsDiff=%8.4f dB\n", ...
+                fprintf("    CH %2d | UT1=%+12.6f dBm | APJ=%+12.6f dBm | SignedDiff=%+9.4f dB | AbsDiff=%8.4f dB\n", ...
                     channelIndex, targetObservation(channelIndex), apjdObservation(channelIndex), ...
                     difference(channelIndex), abs(difference(channelIndex)));
             end
@@ -726,9 +726,9 @@ classdef DebugHelper
             fprintf("  Target RF Min            : %.8f dBm\n", min(targetObservation));
             fprintf("  Target RF Max            : %.8f dBm\n", max(targetObservation));
             fprintf("  Target RF Mean           : %.8f dBm\n", mean(targetObservation));
-            fprintf("  APJD RF Min              : %.8f dBm\n", min(apjdObservation));
-            fprintf("  APJD RF Max              : %.8f dBm\n", max(apjdObservation));
-            fprintf("  APJD RF Mean             : %.8f dBm\n", mean(apjdObservation));
+            fprintf("  APJ RF Min              : %.8f dBm\n", min(apjdObservation));
+            fprintf("  APJ RF Max              : %.8f dBm\n", max(apjdObservation));
+            fprintf("  APJ RF Mean             : %.8f dBm\n", mean(apjdObservation));
             fprintf("  RF Observation L2 Diff  : %.8f\n", norm(difference));
             fprintf("  RF Mean Absolute Diff    : %.8f dB\n", mean(abs(difference)));
             fprintf("  RF Max Absolute Diff     : %.8f dB\n", max(abs(difference)));
@@ -791,13 +791,13 @@ classdef DebugHelper
         %% ========== Shadow DQN Training 출력 ==========
         function printShadowTraining(slotIndex, shadowAgent, state, occupancy, lossValue, trainingInfo)
             fprintf("\n============================================================\n");
-            fprintf("APJD RF-SHADOW AGENT TRAINING - SLOT %d\n", slotIndex);
+            fprintf("APJ RF-SHADOW AGENT TRAINING - SLOT %d\n", slotIndex);
             fprintf("============================================================\n");
             fprintf("  Replay Buffer Count      : %d / %d\n", ...
                 shadowAgent.ReplayBuffer.Count, shadowAgent.ReplayBuffer.Capacity);
             fprintf("  Batch Size               : %d\n", shadowAgent.BatchSize);
             fprintf("  Training Step            : %d\n", shadowAgent.TrainingStep);
-            fprintf("  State Source             : APJD RF Observation\n");
+            fprintf("  State Source             : APJ RF Observation\n");
             fprintf("  Occupancy Source         : ORACLE\n");
             fprintf("  Action Source            : ORACLE\n");
             fprintf("  Reward Source            : ORACLE\n");
@@ -847,7 +847,7 @@ classdef DebugHelper
             fprintf("\n============================================================\n");
             fprintf("TARGET vs RF-SHADOW DQN - SLOT %d\n", slotIndex);
             fprintf("============================================================\n");
-            fprintf("  Shadow State Source      : APJD RF Observation\n");
+            fprintf("  Shadow State Source      : APJ RF Observation\n");
             fprintf("  Shadow Occupancy Source  : ORACLE\n");
             fprintf("  Shadow Action Source     : ORACLE\n");
             fprintf("  Shadow Reward Source     : ORACLE\n\n");
@@ -917,6 +917,112 @@ classdef DebugHelper
             else
                 text = "UNKNOWN";
             end
+        end
+
+                %% ========== IJ Agent Training 결과 출력 ==========
+        function printIJTraining(ij, lossValue, trainingInfo)
+
+            fprintf("\n");
+            fprintf("============================================================\n");
+            fprintf("IJ Agent Training - IJ %d\n", ij.Id);
+            fprintf("============================================================\n");
+
+            fprintf("  Replay Buffer Count      : %d / %d\n", ...
+                ij.Agent.ReplayBuffer.Count, ...
+                ij.Agent.ReplayBuffer.Capacity);
+
+            fprintf("  Batch Size               : %d\n", ...
+                ij.Agent.BatchSize);
+
+            fprintf("  Training Step            : %d\n", ...
+                ij.Agent.TrainingStep);
+
+            fprintf("  Epsilon                  : %.6f\n", ...
+                ij.Agent.Epsilon);
+
+
+            fprintf("\n");
+            fprintf("  [Training]\n");
+
+            if isempty(lossValue)
+
+                fprintf("    Status                 : SKIPPED\n");
+                fprintf("    Reason                 : Replay Buffer not ready (Count < BatchSize)\n");
+
+            else
+
+                fprintf("    Status                 : EXECUTED\n");
+                fprintf("    Loss                   : %.8f\n", lossValue);
+
+                fprintf("    Mean Q-Value           : %.6f\n", ...
+                    trainingInfo.MeanQValue);
+
+                fprintf("    Max Q-Value            : %.6f\n", ...
+                    trainingInfo.MaxQValue);
+
+                fprintf("    Mean Target Q-Value    : %.6f\n", ...
+                    trainingInfo.MeanTargetQValue);
+
+            end
+
+            fprintf("============================================================\n");
+
+        end
+
+
+        %% ========== IJ Action Selection (Top-K Q-value + 채널쌍 디코딩) 출력 ==========
+        function printIJActionSelection(slotIndex, ij, actionIndex, selectionMethod, qValues, reward)
+
+            fprintf("\n============================================================\n");
+            fprintf("IJ ACTION SELECTION - SLOT %d\n", slotIndex);
+            fprintf("============================================================\n");
+            fprintf("  Selection Method         : %s\n", string(selectionMethod));
+            fprintf("  Epsilon After Selection  : %.8f\n", ij.Agent.Epsilon);
+
+            selectedChannels = ij.Agent.decodeAction(actionIndex);
+            fprintf("  Selected Action Index    : %d / %d\n", actionIndex, ij.Agent.NumActions);
+            fprintf("  Selected Channels        : %s\n", mat2str(selectedChannels));
+
+            if ~isempty(reward)
+                fprintf("  Last Reward (self-sensed): %.6f\n", reward);
+            end
+
+            if isempty(qValues)
+
+                fprintf("  Selection Q-values       : N/A (Random Action)\n");
+
+            else
+
+                qValuesDebug = double(qValues(:));
+                [sortedQ, sortedIdx] = sort(qValuesDebug, 'descend');
+                topK = min(5, numel(sortedQ));
+
+                fprintf("\n  [Top-%d Q-values]\n", topK);
+
+                for rank = 1:topK
+
+                    idx = sortedIdx(rank);
+                    channels = ij.Agent.decodeAction(idx);
+
+                    fprintf("    #%d  ActionIdx %3d  CH%s  Q=%+12.8f", ...
+                        rank, idx, mat2str(channels), sortedQ(rank));
+
+                    if idx == actionIndex
+                        fprintf("  <-- Selected");
+                    end
+
+                    fprintf("\n");
+
+                end
+
+                fprintf("\n");
+                fprintf("  Q Range                  : %.8f\n", max(qValuesDebug) - min(qValuesDebug));
+                fprintf("  Q Std                    : %.8f\n", std(qValuesDebug));
+
+            end
+
+            fprintf("============================================================\n");
+
         end
 
     end
